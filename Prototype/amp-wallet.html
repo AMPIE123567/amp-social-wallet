@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amp Social Wallet</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f0f0; }
+        .header { background: #1da1f2; color: white; padding: 1rem; text-align: center; }
+        .feed { max-width: 600px; margin: 0 auto; }
+        .post { background: white; margin: 1rem; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .wallet-btn { background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+        .trade-sim { background: #ffc107; padding: 0.5rem; margin-top: 0.5rem; border-radius: 4px; }
+        .group { background: #e9ecef; padding: 1rem; margin: 1rem; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Amp Social Wallet</h1>
+        <button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+        <div id="balance" class="trade-sim" style="display:none;">Balance: 1.5 ETH | AMP: 500</div>
+    </div>
+    
+    <div class="feed">
+        <div class="post">
+            <h3>@CryptoNinja: Just bought $AMP at $0.05 🚀</h3>
+            <p>Thoughts? Bullish on Web3 socials!</p>
+            <button onclick="likePost()">👍 42</button>
+        </div>
+        
+        <div class="group">
+            <h3>Crypto Newbies Group</h3>
+            <p>Join to chat tips & trades. 1,200 members.</p>
+            <button class="wallet-btn" onclick="joinGroup()">Join</button>
+        </div>
+        
+        <div class="post">
+            <h3>Quick Trade Sim</h3>
+            <p>Buy 100 $AMP for 0.01 ETH?</p>
+            <button class="wallet-btn" onclick="simulateTrade()">Trade</button>
+            <p id="tradeResult" style="display:none; color: green;">Trade executed! +100 AMP</p>
+        </div>
+    </div>
+
+    <script>
+        function connectWallet() {
+            alert('Wallet connected via MetaMask sim! (In real app: ethers.js hook)');
+            document.getElementById('balance').style.display = 'block';
+        }
+        
+        function likePost() {
+            alert('Liked! Engagement up.');
+        }
+        
+        function joinGroup() {
+            alert('Joined Crypto Newbies. Welcome to the chat!');
+        }
+        
+        function simulateTrade() {
+            document.getElementById('tradeResult').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
