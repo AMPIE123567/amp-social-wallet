@@ -5,6 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amp Social Wallet</title>
     <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            margin: 0; padding: 0; 
+            background: #0f0f23; /* Dark space blue */
+            color: #e2e8f0; /* Off-white text */
+            overflow-x: hidden;
+        }
+        /* Starry background */
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                /* Faint rocket trail */
+                linear-gradient(45deg, transparent 30%, rgba(255,215,0,0.1) 50%, transparent 70%);
+            opacity: 0.5; z-index: -1; animation: twinkle 3s infinite alternate;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+        .header { 
+            background: linear-gradient(135deg, #1e293b, #0f0f23); 
+            color: #e2e8f0; padding: 1rem; text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+        }
+        .container { display: flex; max-width: 100%; margin: 0; }
+        .sidebar { width: 250px; background: #1e293b; padding: 1rem; height: 100vh; overflow-y: auto; }
+        .feed { flex: 1; max-width: calc(100% - 250px); padding: 1rem; }
+        .post, .group { background: #1e293b; margin: 1rem 0; padding: 1rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .wallet-btn { background: #22c55e; color: #0f0f23; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .wallet-btn:hover { background: #16a34a; transform: translateY(-1px); }
+        .trade-sim { background: rgba(34,197,94,0.2); padding: 0.75rem; margin-top: 0.5rem; border-radius: 8px; border-left: 4px solid #22c55e; }
+        .friend { display: flex; align-items: center; padding: 0.5rem; border-radius: 8px; margin: 0.25rem 0; cursor: pointer; transition: background 0.2s; }
+        .friend:hover { background: rgba(255,255,255,0.1); }
+        .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: #22c55e; margin-right: 0.75rem; }
+        .chat-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 400px; background: #1e293b; border-radius: 12px; padding: 1rem; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .chat-messages { height: 200px; overflow-y: auto; margin-bottom: 1rem; padding: 0.5rem; background: #0f0f23; border-radius: 8px; }
+        .message { padding: 0.5rem; margin: 0.25rem 0; border-radius: 8px; }
+        .message.sent { background: #22c55e; color: #0f0f23; text-align: right; }
+        .message.received { background: #475569; color: #e2e8f0; }
+        .chat-input { display: flex; }
+        .chat-input input { flex: 1; padding: 0.5rem; border: none; border-radius: 8px 0 0 8px; background: #334155; color: #e2e8f0; }
+        .chat-input button { background: #22c55e; border: none; padding: 0.5rem 1rem; border-radius: 0 8px 8px 0; color: #0f0f23; cursor: pointer; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+    </style>
+</head>
+<body>
+    <div class="overlay" onclick="closeChat()"></div>
+    <div class="chat-modal" id="chatModal">
+        <h3 id="chatTitle">Chat with Friend</h3>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    
+    <div class="header">
+        <h1>Amp Social Wallet</h1>
+        <button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+        <div id="balance" class="trade-sim" style="display:none;">Balance: 1.5 ETH | AMP: 500</div>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h3>Friends (Laid-Back Crew)</h3>
+            <div class="friend" onclick="openChat('CryptoNinja', ['Hey, bullish on $AMP?', 'Yeah, let's trade tips!'])">
+                <div class="friend-avatar"></div>
+                <div>@CryptoNinja <small>Online</small></div>
+            </div>
+            <div class="friend" onclick="openChat('DegenDave', ['Space rockets or moonshots?', 'Both—$AMP to Mars 🚀'])">
+                <div class="friend-avatar" style="background:#4f46e5;"></div>
+                <div>@DegenDave <small>Away</small></div>
+            </div>
+            
+            <h3 style="margin-top:1rem;">Groups</h3>
+            <div class="group" onclick="joinGroup()">
+                <h4>Crypto Newbies (1,200 members)</h4>
+                <p>Chill tips & trades. Semi-laid-back vibes.</p>
+                <button class="wallet-btn">Join</button>
+            </div>
+        </div>
+        
+        <div class="feed">
+            <div class="post">
+                <h3>@CryptoNinja: Just bought $AMP at $0.05 🚀</h3>
+                <p>Thoughts? Bullish on Web3 socials!</p>
+                <button class="wallet-btn" onclick="likePost()" style="background:#3b82f6;">👍 42</button>
+            </div>
+            
+            <div class="post">
+                <h3>Quick Trade Sim</h3>
+                <p>Buy 100 $AMP for 0.01 ETH?</p>
+                <button class="wallet-btn" onclick="simulateTrade()">Trade</button>
+                <p id="tradeResult" style="display:none; color: #22c55e;">Trade executed! +100 AMP 🚀</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChatMessages = [];
+        function connectWallet() {
+            alert('Wallet connected via MetaMask sim! (Real app: ethers.js on Base)');
+            document.getElementById('balance').style.display = 'block';
+        }
+        
+        function likePost() {
+            alert('Liked! Engagement up—Twitter-style buzz.');
+        }
+        
+        function joinGroup() {
+            alert('Joined Crypto Newbies. Check sidebar for more groups—laid-back chats incoming.');
+        }
+        
+        function simulateTrade() {
+            document.getElementById('tradeResult').style.display = 'block';
+        }
+        
+        function openChat(friend, initialMessages) {
+            document.getElementById('chatTitle').textContent = `Chat with ${friend}`;
+            currentChatMessages = initialMessages;
+            renderMessages();
+            document.getElementById('chatModal').style.display = 'block';
+            document.querySelector('.overlay').style.display = 'block';
+        }
+        
+        function closeChat() {
+            document.getElementById('chatModal').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'none';
+        }
+        
+        function renderMessages() {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = currentChatMessages.map((msg, i) => 
+                `<div class="message ${i % 2 === 0 ? 'received' : 'sent'}">${msg}</div>`
+            ).join('');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            if (input.value.trim()) {
+                currentChatMessages.push(input.value);
+                input.value = '';
+                renderMessages();
+            }
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amp Social Wallet</title>
+    <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f0f0; }
         .header { background: #1da1f2; color: white; padding: 1rem; text-align: center; }
         .feed { max-width: 600px; margin: 0 auto; }
